@@ -1,0 +1,14 @@
+# Rust build
+/target
+
+# Node.js
+/node_modules
+
+# Build outputs
+dist
+out
+
+# OS / Editor
+.DS_Store
+.vscode
+.idea

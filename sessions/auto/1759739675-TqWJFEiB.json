@@ -1,0 +1,255 @@
+{
+  "id": "1759739675-TqWJFEiB",
+  "label": null,
+  "created_at": "2025-10-06T08:34:35.744087Z",
+  "file_a_path": "/Users/admin/Downloads/board_BOMtest.xlsx",
+  "file_b_path": null,
+  "column_mapping_a": {
+    "part_number": 0,
+    "model_number": 2,
+    "quantity": 3
+  },
+  "column_mapping_b": null,
+  "bom_a": {
+    "headers": [
+      "Reference",
+      "",
+      "xModel",
+      "Value",
+      "xMaker"
+    ],
+    "rows": [
+      {
+        "part_number": "C1,C2,C6,C7,C15,C16,C19,C20,C21,C22,C23,C24,C25,C26,C27,C28,C29,C30,C31,C32,C41,C50,C57",
+        "model_number": "GRM033R61E104KE14D",
+        "quantity": 0,
+        "attributes": {
+          "xMaker": "MURATA",
+          "Value": "0.1U/25V",
+          "Reference": "C1,C2,C6,C7,C15,C16,C19,C20,C21,C22,C23,C24,C25,C26,C27,C28,C29,C30,C31,C32,C41,C50,C57",
+          "": "",
+          "xModel": "GRM033R61E104KE14D"
+        }
+      },
+      {
+        "part_number": "C3,C8",
+        "model_number": "GRM1552C1H102JA01D",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "Value": "1000P/50V",
+          "xModel": "GRM1552C1H102JA01D",
+          "xMaker": "MURATA",
+          "Reference": "C3,C8"
+        }
+      },
+      {
+        "part_number": "C4,C5",
+        "model_number": "GRM21BR61A476ME15L",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "xMaker": "MURATA",
+          "Reference": "C4,C5",
+          "xModel": "GRM21BR61A476ME15L",
+          "Value": "47U/10V"
+        }
+      },
+      {
+        "part_number": "C9,C11,C33,C34,C35,C36,C37,C38,C39,C40,C42,C43,C44,C45,C46,C47,C48,C49,C51,C52,C53,C54,C55,C56",
+        "model_number": "GRM31CD71H106KE11L",
+        "quantity": 0,
+        "attributes": {
+          "Reference": "C9,C11,C33,C34,C35,C36,C37,C38,C39,C40,C42,C43,C44,C45,C46,C47,C48,C49,C51,C52,C53,C54,C55,C56",
+          "": "",
+          "xModel": "GRM31CD71H106KE11L",
+          "Value": "10U/50V",
+          "xMaker": "MURATA"
+        }
+      },
+      {
+        "part_number": "C10,C12",
+        "model_number": "0603B104K500CT",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "Reference": "C10,C12",
+          "xModel": "0603B104K500CT",
+          "Value": "0.1U/50V",
+          "xMaker": "WALSIN"
+        }
+      },
+      {
+        "part_number": "IC8,IC9,IC10,IC11,IC12,IC13,IC14,IC15,IC16,IC17",
+        "model_number": "74VHC08FT(BJ)",
+        "quantity": 0,
+        "attributes": {
+          "xMaker": "TOSHIBA",
+          "xModel": "74VHC08FT(BJ)",
+          "Reference": "IC8,IC9,IC10,IC11,IC12,IC13,IC14,IC15,IC16,IC17",
+          "": "",
+          "Value": "74VHC08FT(BJ)"
+        }
+      },
+      {
+        "part_number": "IC18,IC19,IC20",
+        "model_number": "74VHCV244FT",
+        "quantity": 0,
+        "attributes": {
+          "Reference": "IC18,IC19,IC20",
+          "xModel": "74VHCV244FT",
+          "Value": "74VHCV244FT",
+          "xMaker": "TOSHIBA",
+          "": ""
+        }
+      },
+      {
+        "part_number": "J1",
+        "model_number": "FX23-120P-0.5SV15",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "xModel": "FX23-120P-0.5SV15",
+          "Reference": "J1",
+          "xMaker": "HIROSE",
+          "Value": "FX23-120P-0.5SV15"
+        }
+      },
+      {
+        "part_number": "J2,J3,J4,J5,J6",
+        "model_number": "B4B-PH-K-S",
+        "quantity": 0,
+        "attributes": {
+          "Value": "B4B-PH-K-S",
+          "": "",
+          "xMaker": "JST",
+          "Reference": "J2,J3,J4,J5,J6",
+          "xModel": "B4B-PH-K-S"
+        }
+      },
+      {
+        "part_number": "J7,J8",
+        "model_number": "S4B-PH-K-S",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "Value": "S4B-PH-K-S",
+          "Reference": "J7,J8",
+          "xModel": "S4B-PH-K-S",
+          "xMaker": "JST"
+        }
+      },
+      {
+        "part_number": "J9,J10,J11,J12,J13,J14,J15,J16,J17,J18,J19",
+        "model_number": "FX23-100P-0.5SV15",
+        "quantity": 0,
+        "attributes": {
+          "Reference": "J9,J10,J11,J12,J13,J14,J15,J16,J17,J18,J19",
+          "Value": "FX23-100P-0.5SV15",
+          "xMaker": "HIROSE",
+          "xModel": "FX23-100P-0.5SV15",
+          "": ""
+        }
+      },
+      {
+        "part_number": "L1",
+        "model_number": "ETQP4M4R7KVC",
+        "quantity": 0,
+        "attributes": {
+          "Reference": "L1",
+          "Value": "4.7U/12.3A",
+          "xMaker": "PANASONIC",
+          "xModel": "ETQP4M4R7KVC",
+          "": ""
+        }
+      },
+      {
+        "part_number": "Q1,Q2,Q3,Q4,Q5,Q6",
+        "model_number": "UMH11N",
+        "quantity": 0,
+        "attributes": {
+          "xMaker": "ROHM",
+          "": "",
+          "Value": "UMH11N",
+          "xModel": "UMH11N",
+          "Reference": "Q1,Q2,Q3,Q4,Q5,Q6"
+        }
+      },
+      {
+        "part_number": "RA1,RA2,RA3",
+        "model_number": "EXBV8V104JV",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "xMaker": "PANASONIC",
+          "Reference": "RA1,RA2,RA3",
+          "xModel": "EXBV8V104JV",
+          "Value": "EXBV8V104JV"
+        }
+      },
+      {
+        "part_number": "RA4,RA5,RA6,RA7,RA8,RA9,RA10,RA11,RA12,RA13,RA14,RA15,RA16,RA17,RA18,RA19,RA20,RA21",
+        "model_number": "EXBV8V472JV",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "xModel": "EXBV8V472JV",
+          "xMaker": "PANASONIC",
+          "Value": "EXBV8V472JV",
+          "Reference": "RA4,RA5,RA6,RA7,RA8,RA9,RA10,RA11,RA12,RA13,RA14,RA15,RA16,RA17,RA18,RA19,RA20,RA21"
+        }
+      },
+      {
+        "part_number": "R1,R2,R3,R4,R16",
+        "model_number": "ERJ3GEYJ472V",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "xModel": "ERJ3GEYJ472V",
+          "Value": "4.7K",
+          "xMaker": "PANASONIC",
+          "Reference": "R1,R2,R3,R4,R16"
+        }
+      },
+      {
+        "part_number": "R8",
+        "model_number": "ERA3AED912V",
+        "quantity": 0,
+        "attributes": {
+          "xModel": "ERA3AED912V",
+          "xMaker": "PANASONIC",
+          "Reference": "R8",
+          "Value": "9.1K/0.5%",
+          "": ""
+        }
+      },
+      {
+        "part_number": "R17,R18,R19,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R30,R31,R32,R33,R34,R35,R36,R37,R38,R39,R40,R41,R42,R43,R44,R45,R46,R47,R48,R49,R50,R51,R52,R53,R54,R55,R56,R57,R58,R59,R60",
+        "model_number": "ERJ3GEYJ104V",
+        "quantity": 0,
+        "attributes": {
+          "": "",
+          "xMaker": "PANASONIC",
+          "xModel": "ERJ3GEYJ104V",
+          "Reference": "R17,R18,R19,R20,R21,R22,R23,R24,R25,R26,R27,R28,R29,R30,R31,R32,R33,R34,R35,R36,R37,R38,R39,R40,R41,R42,R43,R44,R45,R46,R47,R48,R49,R50,R51,R52,R53,R54,R55,R56,R57,R58,R59,R60",
+          "Value": "100K"
+        }
+      },
+      {
+        "part_number": "TP1,TP2,TP3,TP4,TP5",
+        "model_number": "HK-3-S-T",
+        "quantity": 0,
+        "attributes": {
+          "Reference": "TP1,TP2,TP3,TP4,TP5",
+          "xMaker": "MAC8",
+          "xModel": "HK-3-S-T",
+          "Value": "HK-3-S-T",
+          "": ""
+        }
+      }
+    ]
+  },
+  "bom_b": null,
+  "comparison_result": null,
+  "synthesis_result": null
+}
