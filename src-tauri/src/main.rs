@@ -1,17 +1,17 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Mutex;
-use tauri::State;
 use tauri::api::dialog::FileDialogBuilder;
 use tauri::Manager;
+use tauri::State;
 use tokio::sync::oneshot;
-use serde::{Deserialize, Serialize};
 
 mod bom_processor;
-mod file_handler;
 mod comparison;
+mod file_handler;
 mod synthesis;
 
 use bom_processor::{load_bom_file, BomProcessorError};
@@ -71,7 +71,7 @@ pub struct ComparisonRow {
     pub part_number: String,
     pub model_a: String,
     pub model_b: String,
-    pub status: String, // "common", "a_only", "b_only", "modified"
+    pub status: String,      // "common", "a_only", "b_only", "modified"
     pub change_type: String, // "ADDED", "REMOVED", "MODIFIED", "UNCHANGED"
 }
 
@@ -91,9 +91,12 @@ pub struct SynthesisRow {
 
 // 進捗イベントを送信するヘルパー関数
 fn emit_progress(app_handle: &tauri::AppHandle, progress: u32) {
-    let _ = app_handle.emit_all("progress_update", serde_json::json!({
-        "progress": progress
-    }));
+    let _ = app_handle.emit_all(
+        "progress_update",
+        serde_json::json!({
+            "progress": progress
+        }),
+    );
 }
 
 // ファイル読み込みコマンド（進捗付き）
@@ -106,16 +109,16 @@ async fn load_file(
     app_handle: tauri::AppHandle,
 ) -> Result<String, String> {
     emit_progress(&app_handle, 10);
-    
+
     match load_bom_file(&file_path, &column_mapping).await {
         Ok(bom_data) => {
             emit_progress(&app_handle, 70);
-            
+
             // CSVデータを生成
             let csv_content = bom_data_to_csv(&bom_data);
-            
+
             emit_progress(&app_handle, 90);
-            
+
             if side == "a" {
                 *state.bom_a.lock().unwrap() = Some(bom_data);
                 *state.preview_csv_a.lock().unwrap() = Some(csv_content);
@@ -125,9 +128,9 @@ async fn load_file(
             } else {
                 return Err("無効なサイド指定です".to_string());
             }
-            
+
             emit_progress(&app_handle, 100);
-            
+
             Ok(format!("部品表{}を読み込みました", side.to_uppercase()))
         }
         Err(e) => Err(format!("ファイル読み込みエラー: {}", e)),
@@ -137,11 +140,11 @@ async fn load_file(
 // BOMデータをCSV文字列に変換
 fn bom_data_to_csv(bom_data: &BomData) -> String {
     let mut csv_content = String::new();
-    
+
     // ヘッダー行
     csv_content.push_str(&bom_data.headers.join(","));
     csv_content.push('\n');
-    
+
     for row in &bom_data.rows {
         let row_data: Vec<String> = bom_data
             .headers
@@ -151,7 +154,7 @@ fn bom_data_to_csv(bom_data: &BomData) -> String {
         csv_content.push_str(&row_data.join(","));
         csv_content.push('\n');
     }
-    
+
     csv_content
 }
 
@@ -162,7 +165,7 @@ async fn compare_boms(
     app_handle: tauri::AppHandle,
 ) -> Result<ComparisonResult, String> {
     emit_progress(&app_handle, 10);
-    
+
     let (bom_a, bom_b) = {
         let bom_a = state.bom_a.lock().unwrap();
         let bom_b = state.bom_b.lock().unwrap();
@@ -176,10 +179,10 @@ async fn compare_boms(
             emit_progress(&app_handle, 50);
             let result = perform_comparison(&a, &b).await;
             emit_progress(&app_handle, 80);
-            
+
             *state.comparison_result.lock().unwrap() = Some(result.clone());
             emit_progress(&app_handle, 100);
-            
+
             Ok(result)
         }
         _ => Err("部品表AまたはBが読み込まれていません".to_string()),
@@ -193,7 +196,7 @@ async fn synthesize_boms(
     app_handle: tauri::AppHandle,
 ) -> Result<SynthesisResult, String> {
     emit_progress(&app_handle, 10);
-    
+
     let (bom_a, bom_b) = {
         let bom_a = state.bom_a.lock().unwrap();
         let bom_b = state.bom_b.lock().unwrap();
@@ -207,10 +210,10 @@ async fn synthesize_boms(
             emit_progress(&app_handle, 50);
             let result = perform_synthesis(&a, &b).await;
             emit_progress(&app_handle, 80);
-            
+
             *state.synthesis_result.lock().unwrap() = Some(result.clone());
             emit_progress(&app_handle, 100);
-            
+
             Ok(result)
         }
         _ => Err("部品表AまたはBが読み込まれていません".to_string()),
@@ -221,7 +224,7 @@ async fn synthesize_boms(
 #[tauri::command]
 async fn save_result(
     file_path: String,
-    format: String, // "csv" or "txt"
+    format: String,      // "csv" or "txt"
     result_type: String, // "comparison" or "synthesis"
     state: State<'_, AppState>,
 ) -> Result<String, String> {
@@ -264,7 +267,10 @@ async fn preprocess_bom(
 
 // BOMスナップショット取得コマンド
 #[tauri::command]
-async fn get_bom_snapshot(side: String, state: State<'_, AppState>) -> Result<Option<BomData>, String> {
+async fn get_bom_snapshot(
+    side: String,
+    state: State<'_, AppState>,
+) -> Result<Option<BomData>, String> {
     match side.as_str() {
         "a" => {
             let bom_a = state.bom_a.lock().unwrap();
@@ -359,8 +365,8 @@ pub struct CorrectionEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CorrectionType {
-    Auto,    // 自動修正
-    Manual,  // 手動修正
+    Auto,       // 自動修正
+    Manual,     // 手動修正
     Validation, // バリデーション修正
 }
 
@@ -381,13 +387,15 @@ async fn load_registered_name_list(
     state: State<'_, AppState>,
 ) -> Result<String, String> {
     let list = match format.as_str() {
-        "csv" => bom_processor::load_registered_name_csv(&file_path).await
+        "csv" => bom_processor::load_registered_name_csv(&file_path)
+            .await
             .map_err(|e| format!("CSV読み込みエラー: {}", e))?,
-        "json" => bom_processor::load_registered_name_json(&file_path).await
+        "json" => bom_processor::load_registered_name_json(&file_path)
+            .await
             .map_err(|e| format!("JSON読み込みエラー: {}", e))?,
         _ => return Err("サポートされていないフォーマットです".to_string()),
     };
-    
+
     *state.registered_name_list.lock().unwrap() = Some(list);
     Ok("登録名リストを読み込みました".to_string())
 }
@@ -403,13 +411,15 @@ async fn save_registered_name_list(
         let registered_name_list = state.registered_name_list.lock().unwrap();
         registered_name_list.clone()
     };
-    
+
     match list {
         Some(list) => {
             match format.as_str() {
-                "csv" => bom_processor::save_registered_name_csv(&list, &file_path).await
+                "csv" => bom_processor::save_registered_name_csv(&list, &file_path)
+                    .await
                     .map_err(|e| format!("CSV保存エラー: {}", e))?,
-                "json" => bom_processor::save_registered_name_json(&list, &file_path).await
+                "json" => bom_processor::save_registered_name_json(&list, &file_path)
+                    .await
                     .map_err(|e| format!("JSON保存エラー: {}", e))?,
                 _ => return Err("サポートされていないフォーマットです".to_string()),
             }
@@ -429,21 +439,25 @@ async fn apply_registered_names(
         let registered_name_list = state.registered_name_list.lock().unwrap();
         registered_name_list.clone()
     };
-    
+
     let override_list = {
         let override_list = state.override_list.lock().unwrap();
         override_list.clone()
     };
-    
+
     match side.as_str() {
         "a" => {
             let mut bom_a = {
                 let bom_a = state.bom_a.lock().unwrap();
                 bom_a.clone()
             };
-            
+
             if let Some(mut bom) = bom_a {
-                bom_processor::apply_registered_names_to_bom(&mut bom, &registered_name_list, &override_list);
+                bom_processor::apply_registered_names_to_bom(
+                    &mut bom,
+                    &registered_name_list,
+                    &override_list,
+                );
                 *state.bom_a.lock().unwrap() = Some(bom);
                 Ok("部品表Aに登録名を適用しました".to_string())
             } else {
@@ -455,9 +469,13 @@ async fn apply_registered_names(
                 let bom_b = state.bom_b.lock().unwrap();
                 bom_b.clone()
             };
-            
+
             if let Some(mut bom) = bom_b {
-                bom_processor::apply_registered_names_to_bom(&mut bom, &registered_name_list, &override_list);
+                bom_processor::apply_registered_names_to_bom(
+                    &mut bom,
+                    &registered_name_list,
+                    &override_list,
+                );
                 *state.bom_b.lock().unwrap() = Some(bom);
                 Ok("部品表Bに登録名を適用しました".to_string())
             } else {
@@ -480,7 +498,9 @@ async fn apply_overrides(
 
 // 登録名リスト取得コマンド
 #[tauri::command]
-async fn get_registered_name_list(state: State<'_, AppState>) -> Result<Option<RegisteredNameList>, String> {
+async fn get_registered_name_list(
+    state: State<'_, AppState>,
+) -> Result<Option<RegisteredNameList>, String> {
     let registered_name_list = state.registered_name_list.lock().unwrap();
     Ok(registered_name_list.clone())
 }
@@ -515,17 +535,14 @@ async fn validate_bom_data(
         }
         _ => return Err("無効なサイド指定です".to_string()),
     };
-    
+
     let validation_result = bom_processor::validate_bom_data(&bom_data);
     Ok(validation_result)
 }
 
 // プレビューデータ取得コマンド
 #[tauri::command]
-async fn get_preview_data(
-    side: String,
-    state: State<'_, AppState>,
-) -> Result<PreviewData, String> {
+async fn get_preview_data(side: String, state: State<'_, AppState>) -> Result<PreviewData, String> {
     let (bom_data, preview_csv) = match side.as_str() {
         "a" => {
             let bom_a = state.bom_a.lock().unwrap();
@@ -544,7 +561,7 @@ async fn get_preview_data(
         (Some(bom), Some(csv)) => {
             // バリデーション実行
             let validation_result = bom_processor::validate_bom_data(&bom);
-            
+
             Ok(PreviewData {
                 csv_content: csv,
                 headers: bom.headers,
@@ -570,10 +587,10 @@ async fn export_correction_log_csv(
     state: State<'_, AppState>,
 ) -> Result<String, String> {
     let log = state.correction_log.lock().unwrap();
-    
+
     let mut csv_content = String::new();
     csv_content.push_str("タイムスタンプ,行番号,列名,元の値,修正後の値,適用ルール,修正種別\n");
-    
+
     for entry in log.iter() {
         csv_content.push_str(&format!(
             "{},{},{},{},{},{},{}\n",
@@ -590,19 +607,16 @@ async fn export_correction_log_csv(
             }
         ));
     }
-    
+
     std::fs::write(&file_path, csv_content)
         .map_err(|e| format!("修正ログの保存に失敗しました: {}", e))?;
-    
+
     Ok(format!("修正ログを保存しました: {}", file_path))
 }
 
 // データクリアコマンド（拡張版）
 #[tauri::command]
-async fn clear_data(
-    mode: String,
-    state: State<'_, AppState>,
-) -> Result<String, String> {
+async fn clear_data(mode: String, state: State<'_, AppState>) -> Result<String, String> {
     match mode.as_str() {
         "all" => {
             // 全クリア

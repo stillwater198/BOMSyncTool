@@ -1,5 +1,8 @@
-use crate::{BomData, BomRow, ColumnMapping, PreprocessRules, RegisteredNameList, RegisteredNameEntry, OverrideList, ValidationResult, ValidationError, CorrectionEntry, CorrectionType};
-use calamine::{Reader, open_workbook, Xlsx, Xls};
+use crate::{
+    BomData, BomRow, ColumnMapping, CorrectionEntry, CorrectionType, OverrideList, PreprocessRules,
+    RegisteredNameEntry, RegisteredNameList, ValidationError, ValidationResult,
+};
+use calamine::{open_workbook, Reader, Xls, Xlsx};
 use csv::ReaderBuilder;
 use encoding_rs::{SHIFT_JIS, UTF_8};
 use rayon::prelude::*;
@@ -19,7 +22,6 @@ pub enum BomProcessorError {
     #[error("列指定エラー: {0}")]
     ColumnError(String),
 }
-
 
 /// ファイル拡張子に基づいてBOMファイルを読み込む
 pub async fn load_bom_file(
@@ -57,13 +59,13 @@ async fn load_excel_file(
         "xlsx" => {
             let mut workbook: Xlsx<_> = open_workbook(file_path)
                 .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
-            
+
             load_excel_workbook(&mut workbook, column_mapping)
         }
         "xls" => {
             let mut workbook: Xls<_> = open_workbook(file_path)
                 .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
-            
+
             load_excel_workbook(&mut workbook, column_mapping)
         }
         _ => Err(BomProcessorError::FormatError(
@@ -83,7 +85,9 @@ where
 {
     let range = workbook
         .worksheet_range_at(0)
-        .ok_or_else(|| BomProcessorError::FileReadError("ワークシートが見つかりません".to_string()))?
+        .ok_or_else(|| {
+            BomProcessorError::FileReadError("ワークシートが見つかりません".to_string())
+        })?
         .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
 
     let mut headers = Vec::new();
@@ -98,9 +102,7 @@ where
             continue;
         }
 
-        let required_index = column_mapping
-            .part_number
-            .max(column_mapping.model_number);
+        let required_index = column_mapping.part_number.max(column_mapping.model_number);
         if row.len() <= required_index {
             continue; // 必要な列が存在しない場合はスキップ
         }
@@ -137,8 +139,8 @@ async fn load_csv_file(
     file_path: &str,
     column_mapping: &ColumnMapping,
 ) -> Result<BomData, BomProcessorError> {
-    let content = fs::read(file_path)
-        .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
+    let content =
+        fs::read(file_path).map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
 
     // エンコーディングを自動検出
     let (decoded_content, _, _) = if content.starts_with(&[0xEF, 0xBB, 0xBF]) {
@@ -177,9 +179,7 @@ async fn load_csv_file(
     for result in reader.records() {
         let record = result.map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
 
-        let required_index = column_mapping
-            .part_number
-            .max(column_mapping.model_number);
+        let required_index = column_mapping.part_number.max(column_mapping.model_number);
         if record.len() <= required_index {
             continue; // 必要な列が存在しない場合はスキップ
         }
@@ -194,10 +194,7 @@ async fn load_csv_file(
         let mut attributes = HashMap::new();
         for (col_idx, header) in headers.iter().enumerate() {
             if col_idx < record.len() {
-                attributes.insert(
-                    header.clone(),
-                    standardize_string(&record[col_idx]),
-                );
+                attributes.insert(header.clone(), standardize_string(&record[col_idx]));
             }
         }
 
@@ -233,21 +230,23 @@ pub fn standardize_string(input: &str) -> String {
         .to_uppercase() // 大文字に変換
 }
 
-
 /// BOMデータの前処理を実行
-pub fn preprocess_bom_data(bom_data: &BomData, rules: &PreprocessRules) -> Result<BomData, BomProcessorError> {
+pub fn preprocess_bom_data(
+    bom_data: &BomData,
+    rules: &PreprocessRules,
+) -> Result<BomData, BomProcessorError> {
     let mut processed_data = bom_data.clone();
-    
+
     // 各ルールに基づいて前処理を実行
     for row in &mut processed_data.rows {
         // 括弧削除
         if rules.remove_parentheses {
             let original_part = row.part_number.clone();
             let original_model = row.model_number.clone();
-            
+
             row.part_number = remove_parentheses(&row.part_number);
             row.model_number = remove_parentheses(&row.model_number);
-            
+
             // 修正ログに記録
             if original_part != row.part_number {
                 log_correction(
@@ -268,7 +267,7 @@ pub fn preprocess_bom_data(bom_data: &BomData, rules: &PreprocessRules) -> Resul
                 );
             }
         }
-        
+
         // 範囲展開
         if rules.expand_ranges {
             // 範囲展開は部品番号に対してのみ適用
@@ -277,7 +276,7 @@ pub fn preprocess_bom_data(bom_data: &BomData, rules: &PreprocessRules) -> Resul
                 // この実装では単純化のため、最初の部品番号のみを保持
                 let original = row.part_number.clone();
                 row.part_number = expanded[0].clone();
-                
+
                 if original != row.part_number {
                     log_correction(
                         "部品番号",
@@ -289,15 +288,15 @@ pub fn preprocess_bom_data(bom_data: &BomData, rules: &PreprocessRules) -> Resul
                 }
             }
         }
-        
+
         // 全角→半角変換
         if rules.fullwidth_to_halfwidth {
             let original_part = row.part_number.clone();
             let original_model = row.model_number.clone();
-            
+
             row.part_number = fullwidth_to_halfwidth(&row.part_number);
             row.model_number = fullwidth_to_halfwidth(&row.model_number);
-            
+
             if original_part != row.part_number {
                 log_correction(
                     "部品番号",
@@ -317,15 +316,15 @@ pub fn preprocess_bom_data(bom_data: &BomData, rules: &PreprocessRules) -> Resul
                 );
             }
         }
-        
+
         // 小文字→大文字変換
         if rules.lowercase_to_uppercase {
             let original_part = row.part_number.clone();
             let original_model = row.model_number.clone();
-            
+
             row.part_number = row.part_number.to_uppercase();
             row.model_number = row.model_number.to_uppercase();
-            
+
             if original_part != row.part_number {
                 log_correction(
                     "部品番号",
@@ -345,7 +344,7 @@ pub fn preprocess_bom_data(bom_data: &BomData, rules: &PreprocessRules) -> Resul
                 );
             }
         }
-        
+
         // 属性も同様に処理
         for (key, value) in &mut row.attributes {
             if rules.remove_parentheses {
@@ -389,7 +388,7 @@ pub fn preprocess_bom_data(bom_data: &BomData, rules: &PreprocessRules) -> Resul
             }
         }
     }
-    
+
     Ok(processed_data)
 }
 
@@ -419,13 +418,18 @@ fn expand_ranges(input: &str) -> Option<Vec<String>> {
     if let Some(dash_pos) = input.find('-') {
         let prefix = &input[..dash_pos];
         let suffix = &input[dash_pos + 1..];
-        
+
         // 数字部分を抽出
         if let (Some(start_num), Some(end_num)) = (extract_number(prefix), extract_number(suffix)) {
-            if start_num < end_num && end_num - start_num <= 100 { // 安全制限
+            if start_num < end_num && end_num - start_num <= 100 {
+                // 安全制限
                 let mut result = Vec::new();
                 for i in start_num..=end_num {
-                    result.push(format!("{}{}", prefix.trim_end_matches(char::is_numeric), i));
+                    result.push(format!(
+                        "{}{}",
+                        prefix.trim_end_matches(char::is_numeric),
+                        i
+                    ));
                 }
                 return Some(result);
             }
@@ -436,7 +440,8 @@ fn expand_ranges(input: &str) -> Option<Vec<String>> {
 
 /// 文字列から数字を抽出する
 fn extract_number(input: &str) -> Option<u32> {
-    input.chars()
+    input
+        .chars()
         .rev()
         .take_while(|c| c.is_ascii_digit())
         .collect::<String>()
@@ -449,14 +454,15 @@ fn extract_number(input: &str) -> Option<u32> {
 
 /// 全角文字を半角に変換する
 fn fullwidth_to_halfwidth(input: &str) -> String {
-    input.chars().map(|c| {
-        match c {
+    input
+        .chars()
+        .map(|c| match c {
             '０'..='９' => char::from_u32(c as u32 - 0xFEE0).unwrap_or(c),
             'Ａ'..='Ｚ' => char::from_u32(c as u32 - 0xFEE0).unwrap_or(c),
             'ａ'..='ｚ' => char::from_u32(c as u32 - 0xFEE0).unwrap_or(c),
             _ => c,
-        }
-    }).collect()
+        })
+        .collect()
 }
 
 /// 部品表データを並列処理で最適化
@@ -477,13 +483,17 @@ pub fn optimize_bom_data(bom_data: &mut BomData) {
     bom_data.rows = part_map.into_values().collect();
 
     // 並列処理でソート
-    bom_data.rows.par_sort_by(|a, b| a.part_number.cmp(&b.part_number));
+    bom_data
+        .rows
+        .par_sort_by(|a, b| a.part_number.cmp(&b.part_number));
 }
 
 /// 登録名リストをCSVから読み込む
-pub async fn load_registered_name_csv(file_path: &str) -> Result<RegisteredNameList, BomProcessorError> {
-    let content = fs::read(file_path)
-        .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
+pub async fn load_registered_name_csv(
+    file_path: &str,
+) -> Result<RegisteredNameList, BomProcessorError> {
+    let content =
+        fs::read(file_path).map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
 
     let (decoded_content, _, _) = if content.starts_with(&[0xEF, 0xBB, 0xBF]) {
         (UTF_8.decode(&content[3..]).0, UTF_8, true)
@@ -505,7 +515,7 @@ pub async fn load_registered_name_csv(file_path: &str) -> Result<RegisteredNameL
 
     for result in reader.records() {
         let record = result.map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
-        
+
         if record.len() < 2 {
             continue;
         }
@@ -520,23 +530,28 @@ pub async fn load_registered_name_csv(file_path: &str) -> Result<RegisteredNameL
 }
 
 /// 登録名リストをJSONから読み込む
-pub async fn load_registered_name_json(file_path: &str) -> Result<RegisteredNameList, BomProcessorError> {
+pub async fn load_registered_name_json(
+    file_path: &str,
+) -> Result<RegisteredNameList, BomProcessorError> {
     let content = fs::read_to_string(file_path)
         .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
-    
+
     let list: RegisteredNameList = serde_json::from_str(&content)
         .map_err(|e| BomProcessorError::FormatError(format!("JSON解析エラー: {}", e)))?;
-    
+
     Ok(list)
 }
 
 /// 登録名リストをCSVに保存
-pub async fn save_registered_name_csv(list: &RegisteredNameList, file_path: &str) -> Result<(), BomProcessorError> {
+pub async fn save_registered_name_csv(
+    list: &RegisteredNameList,
+    file_path: &str,
+) -> Result<(), BomProcessorError> {
     let mut csv_data = Vec::new();
-    
+
     // ヘッダー行
     csv_data.push(vec!["部品型番".to_string(), "登録名".to_string()]);
-    
+
     // データ行
     for entry in &list.entries {
         csv_data.push(vec![
@@ -544,22 +559,25 @@ pub async fn save_registered_name_csv(list: &RegisteredNameList, file_path: &str
             entry.registered_name.clone(),
         ]);
     }
-    
+
     crate::file_handler::save_csv_file(&csv_data, file_path, "utf-8")
         .await
         .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
-    
+
     Ok(())
 }
 
 /// 登録名リストをJSONに保存
-pub async fn save_registered_name_json(list: &RegisteredNameList, file_path: &str) -> Result<(), BomProcessorError> {
+pub async fn save_registered_name_json(
+    list: &RegisteredNameList,
+    file_path: &str,
+) -> Result<(), BomProcessorError> {
     let json_content = serde_json::to_string_pretty(list)
         .map_err(|e| BomProcessorError::FormatError(format!("JSON生成エラー: {}", e)))?;
-    
+
     fs::write(file_path, json_content)
         .map_err(|e| BomProcessorError::FileReadError(format!("{}", e)))?;
-    
+
     Ok(())
 }
 
@@ -595,9 +613,11 @@ pub fn apply_registered_names_to_bom(
     for row in &mut bom_data.rows {
         // 適用順序: override → 登録名リスト → デフォルト
         if let Some(override_name) = override_map.get(&row.part_number) {
-            row.attributes.insert("登録名".to_string(), override_name.clone());
+            row.attributes
+                .insert("登録名".to_string(), override_name.clone());
         } else if let Some(registered_name) = registered_name_map.get(&row.model_number) {
-            row.attributes.insert("登録名".to_string(), registered_name.clone());
+            row.attributes
+                .insert("登録名".to_string(), registered_name.clone());
         }
     }
 }
@@ -605,10 +625,10 @@ pub fn apply_registered_names_to_bom(
 /// BOMデータのバリデーションを実行
 pub fn validate_bom_data(bom_data: &BomData) -> ValidationResult {
     let mut errors = Vec::new();
-    
+
     for (index, row) in bom_data.rows.iter().enumerate() {
         let row_number = index + 1; // 1ベースの行番号
-        
+
         // 部品番号のバリデーション
         if row.part_number.trim().is_empty() {
             errors.push(ValidationError {
@@ -617,7 +637,7 @@ pub fn validate_bom_data(bom_data: &BomData) -> ValidationResult {
                 message: "部品番号は必須です".to_string(),
             });
         }
-        
+
         // 型番のバリデーション
         if row.model_number.trim().is_empty() {
             errors.push(ValidationError {
@@ -626,13 +646,14 @@ pub fn validate_bom_data(bom_data: &BomData) -> ValidationResult {
                 message: "型番は必須です".to_string(),
             });
         }
-        
+
         // 部品番号の重複チェック
-        let duplicate_count = bom_data.rows
+        let duplicate_count = bom_data
+            .rows
             .iter()
             .filter(|r| r.part_number == row.part_number)
             .count();
-        
+
         if duplicate_count > 1 {
             errors.push(ValidationError {
                 row_number,
@@ -640,26 +661,35 @@ pub fn validate_bom_data(bom_data: &BomData) -> ValidationResult {
                 message: format!("部品番号 '{}' が重複しています", row.part_number),
             });
         }
-        
+
         // 部品番号の形式チェック（英数字とハイフンのみ）
-        if !row.part_number.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
+        if !row
+            .part_number
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+        {
             errors.push(ValidationError {
                 row_number,
                 field: "部品番号".to_string(),
                 message: "部品番号は英数字、ハイフン、アンダースコアのみ使用できます".to_string(),
             });
         }
-        
+
         // 型番の形式チェック
-        if !row.model_number.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '.') {
+        if !row
+            .model_number
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '.')
+        {
             errors.push(ValidationError {
                 row_number,
                 field: "型番".to_string(),
-                message: "型番は英数字、ハイフン、アンダースコア、ピリオドのみ使用できます".to_string(),
+                message: "型番は英数字、ハイフン、アンダースコア、ピリオドのみ使用できます"
+                    .to_string(),
             });
         }
     }
-    
+
     ValidationResult {
         is_valid: errors.is_empty(),
         errors,
@@ -677,5 +707,4 @@ mod tests {
         assert_eq!(standardize_string("abc\n123"), "ABC123");
         assert_eq!(standardize_string("A B C"), "ABC");
     }
-
 }

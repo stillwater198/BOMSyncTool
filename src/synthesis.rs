@@ -4,10 +4,16 @@ use std::collections::{HashMap, HashSet};
 
 /// 部品表AとBを合成して代替合成部品表を作成する
 pub fn perform_synthesis(bom_a: &BomData, bom_b: &BomData) -> SynthesisResult {
-    let map_a: HashMap<String, &crate::BomRow> =
-        bom_a.rows.iter().map(|row| (row.part_number.clone(), row)).collect();
-    let map_b: HashMap<String, &crate::BomRow> =
-        bom_b.rows.iter().map(|row| (row.part_number.clone(), row)).collect();
+    let map_a: HashMap<String, &crate::BomRow> = bom_a
+        .rows
+        .iter()
+        .map(|row| (row.part_number.clone(), row))
+        .collect();
+    let map_b: HashMap<String, &crate::BomRow> = bom_b
+        .rows
+        .iter()
+        .map(|row| (row.part_number.clone(), row))
+        .collect();
 
     let mut all_part_numbers: HashSet<String> = HashSet::new();
     all_part_numbers.extend(map_a.keys().cloned());
@@ -87,10 +93,22 @@ pub async fn save_synthesis_result(
             content.push_str("=== 代替合成部品表 ===\n\n");
 
             let stats = get_synthesis_stats(result);
-            content.push_str(&format!("総部品数: {}件\n", stats.get("total").copied().unwrap_or(0)));
-            content.push_str(&format!("共通部品: {}件\n", stats.get("common").copied().unwrap_or(0)));
-            content.push_str(&format!("A欠品: {}件\n", stats.get("missing_a").copied().unwrap_or(0)));
-            content.push_str(&format!("B欠品: {}件\n\n", stats.get("missing_b").copied().unwrap_or(0)));
+            content.push_str(&format!(
+                "総部品数: {}件\n",
+                stats.get("total").copied().unwrap_or(0)
+            ));
+            content.push_str(&format!(
+                "共通部品: {}件\n",
+                stats.get("common").copied().unwrap_or(0)
+            ));
+            content.push_str(&format!(
+                "A欠品: {}件\n",
+                stats.get("missing_a").copied().unwrap_or(0)
+            ));
+            content.push_str(&format!(
+                "B欠品: {}件\n\n",
+                stats.get("missing_b").copied().unwrap_or(0)
+            ));
 
             content.push_str("=== 部品一覧 ===\n");
             for row in &result.rows {
@@ -119,7 +137,11 @@ pub fn get_synthesis_stats(result: &SynthesisResult) -> HashMap<String, usize> {
     stats.insert("total".to_string(), result.rows.len());
     stats.insert(
         "common".to_string(),
-        result.rows.iter().filter(|row| row.status == "common").count(),
+        result
+            .rows
+            .iter()
+            .filter(|row| row.status == "common")
+            .count(),
     );
     stats.insert(
         "missing_a".to_string(),
@@ -235,13 +257,25 @@ mod tests {
 
         assert_eq!(result.rows.len(), 3);
 
-        let part001 = result.rows.iter().find(|r| r.part_number == "PART001").unwrap();
+        let part001 = result
+            .rows
+            .iter()
+            .find(|r| r.part_number == "PART001")
+            .unwrap();
         assert_eq!(part001.status, "common");
 
-        let part002 = result.rows.iter().find(|r| r.part_number == "PART002").unwrap();
+        let part002 = result
+            .rows
+            .iter()
+            .find(|r| r.part_number == "PART002")
+            .unwrap();
         assert_eq!(part002.status, "missing_b");
 
-        let part003 = result.rows.iter().find(|r| r.part_number == "PART003").unwrap();
+        let part003 = result
+            .rows
+            .iter()
+            .find(|r| r.part_number == "PART003")
+            .unwrap();
         assert_eq!(part003.status, "missing_a");
     }
 

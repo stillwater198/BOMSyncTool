@@ -4,10 +4,16 @@ use std::collections::HashMap;
 
 /// 部品表AとBを比較する
 pub fn perform_comparison(bom_a: &BomData, bom_b: &BomData) -> ComparisonResult {
-    let map_a: HashMap<String, &crate::BomRow> =
-        bom_a.rows.iter().map(|row| (row.part_number.clone(), row)).collect();
-    let map_b: HashMap<String, &crate::BomRow> =
-        bom_b.rows.iter().map(|row| (row.part_number.clone(), row)).collect();
+    let map_a: HashMap<String, &crate::BomRow> = bom_a
+        .rows
+        .iter()
+        .map(|row| (row.part_number.clone(), row))
+        .collect();
+    let map_b: HashMap<String, &crate::BomRow> = bom_b
+        .rows
+        .iter()
+        .map(|row| (row.part_number.clone(), row))
+        .collect();
 
     let (common_parts, a_only_parts) = rayon::join(
         || find_common_parts(&map_a, &map_b),

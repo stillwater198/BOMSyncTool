@@ -640,9 +640,7 @@ fn build_bom_from_rows(
     raw_rows: Vec<Vec<String>>,
     column_mapping: &ColumnMapping,
 ) -> Result<LoadBomResult, BomProcessorError> {
-    let mut max_required_index = column_mapping
-        .part_number
-        .max(column_mapping.model_number);
+    let mut max_required_index = column_mapping.part_number.max(column_mapping.model_number);
 
     if let Some(manufacturer_idx) = column_mapping.manufacturer {
         max_required_index = max_required_index.max(manufacturer_idx);
@@ -1130,5 +1128,4 @@ mod tests {
         assert_eq!(standardize_string("abc\n123"), "ABC123");
         assert_eq!(standardize_string("A B C"), "ABC");
     }
-
 }

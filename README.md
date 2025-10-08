@@ -177,7 +177,6 @@ cargo tauri build
 struct BomRow {
     part_number: String,
     model_number: String,
-    quantity: i32,
     attributes: HashMap<String, String>,
 }
 ```

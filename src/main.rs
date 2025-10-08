@@ -1541,10 +1541,7 @@ fn generate_preprocessed_preview(
                     value = row.part_number.clone();
                 } else if model_header.as_ref().map(String::as_str) == Some(header.as_str()) {
                     value = row.model_number.clone();
-                } else if manufacturer_header
-                    .as_ref()
-                    .map(String::as_str)
-                    == Some(header.as_str())
+                } else if manufacturer_header.as_ref().map(String::as_str) == Some(header.as_str())
                 {
                     value = row.attributes.get(header).cloned().unwrap_or_default();
                 }
