@@ -1,8 +1,8 @@
-# Kyoden BOM Tool - 部品表比較・変換・合成ツール
+# BOMSyncTool - 部品表比較・変換・合成ツール
 
 ## 概要
 
-Kyoden BOM Toolは、部品表の比較・変換・合成を行うデスクトップアプリケーションです。RustとTauriを使用して開発され、Windows、macOS、Linuxで動作します。
+BOMSyncToolは、部品表の比較・変換・合成を行うデスクトップアプリケーションです。RustとTauriを使用して開発され、Windows、macOS、Linuxで動作します。
 
 ## 主な機能
 
@@ -191,7 +191,7 @@ MIT License
 
 ## 更新履歴
 
-### v0.1.0 (2024-01-01)
+### v0.1.0 (2025-10-12予定)
 - 初回リリース
 - 基本的な比較・合成機能
 - Excel/CSV読み込み対応
@@ -205,7 +205,7 @@ MIT License
 
 ## 開発者情報
 
-- **開発**: Kyoden Development Team
+- **開発**: Sota Hemmi
 - **言語**: Rust, JavaScript, HTML, CSS
 - **フレームワーク**: Tauri
 - **ライセンス**: MIT
